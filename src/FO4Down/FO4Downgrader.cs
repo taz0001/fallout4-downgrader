@@ -642,41 +642,46 @@ namespace FO4Down
             if (OnStepUpdate != null)
                 this.OnStepUpdate(this);
         }
-
         public void Notify(string message, params object[] args)
         {
             try
+        {
+            string msg;
+            if (args != null && args.Length > 0)
+        {
+            try
             {
-                var msg = args != null && args.Length > 0 ? string.Format(message, args) : message;
-                if (msg != Message)
-                {
-                    log.AppendLine(msg);
-                }
-                Message = msg;
+                msg = string.Format(message, args);
             }
-            catch (Exception exc)
+            catch (FormatException)
             {
+                // Handle format exception
+                msg = "Invalid format: " + message;
+            }
+        }
+        else
+        {
+            msg = message;
+        }
+
+        if (msg != Message)
+        {
+            // Assuming log is a StringBuilder or similar
+            log.AppendLine(msg);
+        }
+        
+        Message = msg;
+        }
+        catch (Exception exc)
+        {
+                // Log and handle the exception appropriately
                 Error(exc.ToString());
                 return;
-            }
-            if (OnStepUpdate != null)
-                this.OnStepUpdate(this);
         }
 
-        public void Progress(string message, float fraction)
-        {
-            Fraction = fraction;
-
-            if (!string.IsNullOrEmpty(message) && message != Message)
-            {
-                Message = message;
-                log.AppendLine(message);
-            }
-
-            if (OnStepUpdate != null)
-                this.OnStepUpdate(this);
+        // Ensure OnStepUpdate is not null before invoking
+        OnStepUpdate?.Invoke(this);
         }
-
 
         public void Error(string message, params object[] args)
         {

@@ -644,45 +644,36 @@ namespace FO4Down
         }
         public void Notify(string message, params object[] args)
         {
-            try
-        {
-            string msg;
-            if (args != null && args.Length > 0)
-        {
-            try
+        try
             {
+            string msg = message;
+                if (args != null && args.Length > 0)
+            {
+                try
+                {
                 msg = string.Format(message, args);
+                }
+                catch (FormatException)
+                {
+                // Handle cases where format string and args don't match
+                msg = message + " [Invalid format or missing arguments]";
+                }
             }
-            catch (FormatException)
+
+            if (msg != Message)
             {
-                // Handle format exception
-                msg = "Invalid format: " + message;
+                log.AppendLine(msg);
             }
-        }
-        else
-        {
-            msg = message;
-        }
-
-        if (msg != Message)
-        {
-            // Assuming log is a StringBuilder or similar
-            log.AppendLine(msg);
-        }
-        
-        Message = msg;
-        }
-        catch (Exception exc)
-        {
-                // Log and handle the exception appropriately
-                Error(exc.ToString());
-                return;
-        }
-
-        // Ensure OnStepUpdate is not null before invoking
-        OnStepUpdate?.Invoke(this);
-        }
-
+            Message = msg;
+    }
+    catch (Exception exc)
+    {
+        Error(exc.ToString());
+        return;
+    }
+    if (OnStepUpdate != null)
+        this.OnStepUpdate(this);
+}
         public void Error(string message, params object[] args)
         {
             var msg = args != null && args.Length > 0 ? string.Format(message, args) : message;
